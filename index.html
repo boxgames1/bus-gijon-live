@@ -28,7 +28,7 @@
 	//Proj4js.defs["EPSG:23030"] = "+title=ED50 / UTM zone 30N +proj=utm +zone=30 +ellps=intl +units=m +no_defs ";
 
 
-	var urlServidor = "http://datos.gijon.es";
+	var urlServidor = "http://bookieshunter.com/";
 	var googlemap;
 	var shadowMarkerImage;
 	var tamanioIconoBus = 29;
@@ -398,9 +398,10 @@
 			shadowMarkerImage = new google.maps.MarkerImage('images/bus_sombra.png', null, null, new google.maps.Point(tamanioIconoBus/2, tamanioIconoBus/2));	    
 
 			$.ajax({ // paradas
-			  url: urlServidor + '/doc/transporte/busgijoninfo.json',
+			  url: urlServidor + 'gijon3.php',
 			  async: false,
 			  success: function(data) {
+				  data=JSON.parse(data);
 				  parseaInfo(data);
 				  var nombresParadas = new Array();
 				  for (x in paradasMarkers) {
@@ -412,25 +413,27 @@
 
 
 			$.ajax({ // tr
-			  url: urlServidor + '/doc/transporte/busgijontr.json',
+			  url: urlServidor + 'gijon.php',
 			  async: true,
 			  success: function(data) {
+				  data=JSON.parse(data);
 				  parseaTR(data);
 				} 
 			}); // $.ajax  tr
 			
-			$.PeriodicalUpdater(urlServidor + '/doc/transporte/busgijontr.json', {
+			$.PeriodicalUpdater(urlServidor + 'gijon.php', {
 				method: 'get',          // method; get or post
 				  data: '',                   // array of values to be passed to the page - e.g. {name: "John", greeting: "hello"}
-				  minTimeout: 10000,       // starting value for the timeout in milliseconds
-				  maxTimeout: 15000,       // maximum length of time between requests
+				  minTimeout: 3000,       // starting value for the timeout in milliseconds
+				  maxTimeout: 5000,       // maximum length of time between requests
 				  multiplier: 2,          // if set to 2, timerInterval will double each time the response hasn't changed (up to maxTimeout)
 				  type: 'text',           // response type - text, xml, json, etc.  See $.ajax config options
 				maxCalls: 0,            // maximum number of calls. 0 = no limit.
 				autoStop: 0             // automatically stop requests after this many returns of the same data. 0 = disabled.
 			}, function(data) {
+				  jsondata=JSON.parse(data);
 			// Handle the new data (only called when there was a change)
-				var jsondata = jQuery.parseJSON(data);
+				//var jsondata = jQuery.parseJSON(data);
 			   parseaTR(jsondata);
 			}); 
 
@@ -440,9 +443,10 @@
 			});
 
 			$.ajax({ // trayectos
-			  url: urlServidor + '/doc/transporte/busgijontray.json',
+			  url: urlServidor + 'gijon2.php',
 			  async: true,
 			  success: function(data) {
+				  data=JSON.parse(data);
 				  parseaTrayectos(data);
 				} 
 			}); // $.ajax  trayectos
@@ -559,7 +563,7 @@
 
 	// Cambia el tamaño del mapa para que ocupe todo el espacio disponible
 	function resiz() {
-		document.getElementById('map_canvas').style.height = document.documentElement.offsetHeight - 8 - document.getElementById('container').offsetHeight - document.getElementById('controles').offsetHeight +'px';
+		document.getElementById('map_canvas').style.height = document.documentElement.offsetHeight - 8 +'px';
 		return false;
 	}
 
@@ -626,7 +630,7 @@
 	
 		<div style="float: left; width: 55%;">
 			<div style="font-size: 14px; font-weight: bold; margin-bottom: 5px">Líneas de autobús</div>
-			<div id="controlesListaLineas"><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #00A6D6;">L01 <input type="checkbox" id="checkbox_1" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #5C145E;">L02 <input type="checkbox" id="checkbox_2" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #144D29;">L04 <input type="checkbox" id="checkbox_4" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #DE1F82;">L06 <input type="checkbox" id="checkbox_6" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #2905A1;">L10 <input type="checkbox" id="checkbox_10" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #F7D917;">L12 <input type="checkbox" id="checkbox_12" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #8FD400;">L14 <input type="checkbox" id="checkbox_14" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #FF9B03;">L15 <input type="checkbox" id="checkbox_15" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #4F2926;">L16 <input type="checkbox" id="checkbox_16" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #F58FC7;">L18 <input type="checkbox" id="checkbox_18" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #910045;">L20 <input type="checkbox" id="checkbox_20" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #00B052;">L21 <input type="checkbox" id="checkbox_21" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #7D7805;">L24 <input type="checkbox" id="checkbox_24" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #9E4D0A;">L25 <input type="checkbox" id="checkbox_25" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #C4A6DE;">L26 <input type="checkbox" id="checkbox_26" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #F00A00;">L28 <input type="checkbox" id="checkbox_28" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #B80B00;">L30 <input type="checkbox" id="checkbox_30" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #828585;">L34 <input type="checkbox" id="checkbox_34" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #FF8040;">L35 <input type="checkbox" id="checkbox_35" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div></div>
+			<div id="controlesListaLineas"></div>
 			<div style="float: left;font-size: 11px; font-weight: bold; margin-left: 30px; padding-left: 8px; margin-bottom: 4px;  ">Todas <input type="checkbox" id="checkbox_todas" onchange="actualizarLineasMarcadasMarcarTodas();"> &nbsp;</div>
 			<div style="float: left;font-size: 11px; font-weight: bold; margin-left: 30px; padding-left: 8px; margin-bottom: 4px;  ">Ninguna <input type="checkbox" id="checkbox_ninguna" onchange="actualizarLineasMarcadasDesmarcarTodas();"> &nbsp;</div>
 
