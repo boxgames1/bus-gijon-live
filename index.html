@@ -1,0 +1,656 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xml:lang="es" lang="es" style="height: 100%"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style type="text/css">.gm-style .gm-style-mtc label,.gm-style .gm-style-mtc div{font-weight:400}</style><link type="text/css" rel="stylesheet" href="./RISP Gijón. Autobus en tiempo real_files/css"><style type="text/css">.gm-style .gm-style-cc span,.gm-style .gm-style-cc a,.gm-style .gm-style-mtc div{font-size:10px}</style><style type="text/css">@media print {  .gm-style .gmnoprint, .gmnoprint {    display:none  }}@media screen {  .gm-style .gmnoscreen, .gmnoscreen {    display:none  }}</style>
+	
+	
+    <link rel="stylesheet" type="text/css" href="./RISP Gijón. Autobus en tiempo real_files/tipsy.css">
+    <link rel="stylesheet" type="text/css" href="./RISP Gijón. Autobus en tiempo real_files/portal.css">
+	<link rel="stylesheet" type="text/css" href="./RISP Gijón. Autobus en tiempo real_files/jquery.tooltip.css">
+	<link rel="stylesheet" type="text/css" href="./RISP Gijón. Autobus en tiempo real_files/jquery.autocomplete.css">
+	
+	<link rel="stylesheet" type="text/css" href="./RISP Gijón. Autobus en tiempo real_files/portal_generica.css">
+
+
+	<script type="text/javascript" src="./RISP Gijón. Autobus en tiempo real_files/jquery-1.8.3.min.js"></script>
+	
+	<script type="text/javascript" src="./RISP Gijón. Autobus en tiempo real_files/proj4js-compressed.js"></script>
+	
+	<script type="text/javascript" src="./RISP Gijón. Autobus en tiempo real_files/jquery.periodicalupdater.js"></script>
+	
+	<script type="text/javascript" src="./RISP Gijón. Autobus en tiempo real_files/jquery.autocomplete.js"></script>
+		
+	<script type="text/javascript" src="./RISP Gijón. Autobus en tiempo real_files/js"></script>
+
+    
+    <script type="text/javascript">
+
+	Proj4js.defs["EPSG:23030"] = "+title=ED50 / UTM zone 30N +proj=utm +zone=30 +ellps=intl +towgs84=-131.0320,-100.2510,-163.3540,1.2438,0.0195,1.1436,9.3900 +units=m +no_defs ";
+	//Proj4js.defs["EPSG:23030"] = "+title=ED50 / UTM zone 30N +proj=utm +zone=30 +ellps=intl +towgs84=-84,-107,-120 +units=m +no_defs ";
+	//Proj4js.defs["EPSG:23030"] = "+title=ED50 / UTM zone 30N +proj=utm +zone=30 +ellps=intl +units=m +no_defs ";
+
+
+	var urlServidor = "http://datos.gijon.es";
+	var googlemap;
+	var shadowMarkerImage;
+	var tamanioIconoBus = 29;
+	var lineasNombres = {};
+	var lineasColores = {};	
+	var trayectosNombres = {};
+	var paradasMarkers = {};
+	var paradasNombres = {};
+	var paradasInfos = {};
+	var paradaInfoActual;
+	var busesMarkers = {};
+	var busesInfos = {};
+	var busesClickListeners = {};
+	var busInfoActual;
+	var paradasDeTrayectos = {};
+	var puntosDeTrayectosIniciales = {};
+	var puntosDeTrayectos = {};
+	var trayectosPolylines = {};
+
+	var lineasMarcadas = {};
+	//var lineasMarcadas = { l1:true, l2:true, l4:true, l5:true, l10:true, l12:true, l14:true, l15:true, l16:true, l18:true, l20:true, l21:true, l22:true, l24:true, l25:true, l26:true };
+		
+	var coloresLineasPrefijados = { l1:"#00adef", l2:"#652d89", l4:"#006224", l5:"#ea4498", l10:"#1b3e94", l12:"#ffe800", l14:"#a0ce67", 
+							l15:"#fdb813", l16:"#581f00", l18:"#f5a2c6", l20:"#b1005c", l21:"#00b159", l22:"#78bde8", l24:"#8d8b00", l25:"#b66611", l26:"#b9b2d8" };
+	
+	function getGooglePoint(utmPoint) {
+		var source = new Proj4js.Proj('EPSG:23030');
+		var dest = new Proj4js.Proj('WGS84');
+		var p = new Proj4js.Point(utmPoint.x,utmPoint.y);
+		Proj4js.transform(source, dest, p);
+		return p;
+	}
+
+	function getUtmPoint(googlePoint) {
+		var source = new Proj4js.Proj('WGS84');
+		var dest = new Proj4js.Proj('EPSG:23030');		
+		var p = new Proj4js.Point(googlePoint.x,googlePoint.y);
+		Proj4js.transform(source, dest, p);
+		return p;
+	}
+
+	// Funcion que parsea el json con los datos estaticos: paradas, lineas, trayectos.
+	//   Se ejecuta una sola vez al entrar o recargar la aplicacion.
+	function parseaInfo(jsondata) {
+
+		paradasMarkers = new Array();
+
+		var json = jsondata;
+		
+		jQuery.each(json.paradas.parada, function(index, par) {
+
+			utmPoint=new Object();
+			utmPoint.x=par.utmx;
+			utmPoint.y=par.utmy;
+			//alert(utmPoint.x + " - " + utmPoint.y);
+			googlePoint=getGooglePoint(utmPoint);
+			//alert(googlePoint);
+			var myLatlng = new google.maps.LatLng(googlePoint.y,googlePoint.x);
+			
+			var marker = new google.maps.Marker({
+				  position: myLatlng,
+				  icon: 'images/parada.png',
+				  title: par.descripcion + " - " + par.idparada,
+				  zIndex: 1
+			  });
+			marker.setMap(googlemap);  
+
+			var infowindow = new google.maps.InfoWindow({
+				content: "<strong>" + par.descripcion + "</strong> (" + par.idparada + ")"
+			});
+			google.maps.event.addListener(marker, 'click', function() {
+				if (paradaInfoActual)
+					paradaInfoActual.close();
+				if (busInfoActual)
+					busInfoActual.close();				
+				infowindow.open(googlemap,marker);
+				paradaInfoActual = infowindow;
+			});
+			google.maps.event.addListener(infowindow, 'closeclick', function() {
+			  //alert("secierra");
+			});
+			
+			
+			paradasMarkers[par.idparada] = marker;
+			paradasNombres[par.idparada] = par.descripcion;
+			paradasInfos[par.idparada] = infowindow;
+
+			// descomentar para debugear la aplicacion y que no saque todas las paradas
+			//return (index!=80);
+			});
+			
+		jQuery.each(json.lineas.linea, function(index, lin) {			
+			// se filtran las lineas que no son buho
+			//alert(lin.codigo.substring(0,1))
+			if (lin.codigo.substring(0,1) != 'B') {
+			
+				lineasNombres[lin.idlinea] = lin.descripcion;
+				if (lin.colorHex!="undefined" && lin.colorHex!=null)
+					lineasColores[lin.idlinea] = "#" + lin.colorHex;
+				else {
+					lineasColores[lin.idlinea] = coloresLineasPrefijados["l" + lin.idlinea];
+				}
+				//alert(lineasColores[lin.idlinea]);
+			}
+			});
+
+		jQuery.each(json.trayectos.trayecto, function(index, tray) {
+			trayectosNombres[tray.idlinea + "-" + tray.idtrayecto] = tray.descripcion;
+			});
+
+		jQuery.each(json.paradasTrayectos.parada, function(index, partray) {
+			if (paradasDeTrayectos[partray.idlinea + "-" + partray.idtrayecto]=="undefined" || paradasDeTrayectos[partray.idlinea + "-" + partray.idtrayecto]==null) {
+				paradasDeTrayectos[partray.idlinea + "-" + partray.idtrayecto] = new Array();
+			}
+			paradasDeTrayectos[partray.idlinea + "-" + partray.idtrayecto].push(partray.idparada);
+			});						
+
+		
+		var htmlControlesListaLineas = "";
+		for (ln in lineasNombres) {
+			var nomln = ln > 9 ? ln : "0"+ln;
+			htmlControlesListaLineas = htmlControlesListaLineas + '<div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid;' +
+				' border-color: ' + lineasColores[ln]  + ';">L' + nomln + ' <input type="checkbox" id="checkbox_' + ln + '" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"/> &nbsp;</div>';
+			lineasMarcadas['l'+ln] = true;
+		}
+		document.getElementById("controlesListaLineas").innerHTML = htmlControlesListaLineas;		
+		
+	}
+
+	// Funcion que parsea el json con los datos de los trayectos: geoposiciones.
+	//   Se ejecuta una sola vez al entrar o recargar la aplicacion.
+	function parseaTrayectos(jsondata) {
+
+		var json = jsondata;
+		
+		jQuery.each(json.puntosTrayectos.puntoTrayecto, function(index, partray) {
+
+			if (puntosDeTrayectosIniciales[partray.idlinea + "-" + partray.idtrayecto]=="undefined" || puntosDeTrayectosIniciales[partray.idlinea + "-" + partray.idtrayecto]==null) {
+				puntosDeTrayectosIniciales[partray.idlinea + "-" + partray.idtrayecto] = new Array();
+			}
+			
+			utmPoint=new Object();
+			utmPoint.x=partray.utmx;
+			utmPoint.y=partray.utmy;
+			//alert(utmPoint.x + " - " + utmPoint.y);
+			puntosDeTrayectosIniciales[partray.idlinea + "-" + partray.idtrayecto].push(utmPoint);
+			
+			});				
+	}
+	
+
+	// Funcion que parsea el json con los datos en tiempo real: posicion de los autobuses.
+	//   Se ejecuta periodicamente cada 
+	function parseaTR(jsondata) {
+
+		for (x in busesMarkers) { // borramos todos los markers para que no salgan los que han llegado a destino
+			busesMarkers[x].setMap(null);
+		}
+				
+		var json = jsondata;
+		//alert("Autobuses: " + json.posiciones.posicion.length);
+		jQuery.each(json.posiciones.posicion, function(index, pos) {
+
+			utmPoint=new Object();
+			utmPoint.x=pos.utmx;
+			utmPoint.y=pos.utmy;
+			googlePoint=getGooglePoint(utmPoint);
+			var myLatlng = new google.maps.LatLng(googlePoint.y,googlePoint.x);
+
+			var marker = busesMarkers[pos.matricula];
+			
+			colorTiempo = "black";
+			if (pos.minutos <=2)
+				colorTiempo = "red";
+			var textoMin = pos.minutos + " minutos";
+			if (pos.minutos==0)			
+				textoMin = "menos de 1 minuto";			
+			
+			var direccion = ""
+			if (paradasMarkers[pos.idsiguienteparada]!="undefined" && paradasMarkers[pos.idsiguienteparada]!=null) {
+				angulo = anguloDireccion(myLatlng, paradasMarkers[pos.idsiguienteparada].getPosition());
+				direccion = nombreDireccion(angulo);
+			}
+
+			var contenidoInfo = "<div style=\"width:500px;\"><div style=\"width:400px; border-bottom:3px solid;\" ><img src=\"images/bus" + pos.idlinea + ".png\" align=\"top\"/><strong>" + lineasNombres[pos.idlinea] + "</strong></div><br/><strong>Autobús</strong>: " + pos.idautobus + "<br/><strong>Trayecto " + pos.idtrayecto + "</strong>: " + trayectosNombres[pos.idlinea + "-" + pos.idtrayecto] + "<br/><strong>Próxima parada</strong>: " + paradasNombres[pos.idsiguienteparada]  + " (" + pos.ordenparada + "ª en trayecto), <strong style=\"color:" + colorTiempo + "\">" + textoMin + "</strong><br/><br/><i>Datos actualizados a las " + pos.horaactualizacion + "</i></div>";
+			var infowindow;
+			if (marker=="undefined" || marker==null) {
+				
+				var markerImage = busMarkerOrientado(pos.idlinea, direccion);
+				marker = new google.maps.Marker({
+					  position: myLatlng,
+					  icon: markerImage,
+					  shadow: shadowMarkerImage,
+					  title: pos.descripcion,
+					  zIndex: 2
+				  });
+				  marker.setMap(googlemap);
+				  
+				infowindow = new google.maps.InfoWindow({
+					content: contenidoInfo
+				});
+				
+				marker.idLinea = pos.idlinea;
+				busesMarkers[pos.matricula] = marker;
+				busesInfos[pos.matricula] = infowindow;
+			}
+			else {
+				marker.setPosition(myLatlng);				
+				busesInfos[pos.matricula].setContent(contenidoInfo);
+				infowindow = busesInfos[pos.matricula];
+				var markerImage = busMarkerOrientado(pos.idlinea, direccion);
+				marker.setIcon(markerImage);
+			}
+
+			if (busesClickListeners[pos.matricula]!="undefined" && busesClickListeners[pos.matricula]!=null)
+				google.maps.event.removeListener(busesClickListeners[pos.matricula]);
+			var busClickListener = google.maps.event.addListener(marker, 'click', function() {
+				if (paradaInfoActual)
+					paradaInfoActual.close();
+				if (busInfoActual)
+					busInfoActual.close();
+				infowindow.open(googlemap,marker);
+				busInfoActual = infowindow;
+				
+				for (x in trayectosPolylines) 
+					trayectosPolylines[x].setMap(null);
+				
+				if (trayectosPolylines[pos.idlinea + "-" + pos.idtrayecto]=="undefined" || trayectosPolylines[pos.idlinea + "-" + pos.idtrayecto]==null) {
+					
+					puntosDeTrayectos[pos.idlinea + "-" + pos.idtrayecto]= new Array();
+					for (x in puntosDeTrayectosIniciales[pos.idlinea + "-" + pos.idtrayecto]) {
+						googlePoint=getGooglePoint(puntosDeTrayectosIniciales[pos.idlinea + "-" + pos.idtrayecto][x]);
+						//alert(googlePoint);
+						//alert(partray.idlinea + "-" + partray.idtrayecto + "-" + partray.orden);
+						var pointLatlng = new google.maps.LatLng(googlePoint.y,googlePoint.x);	
+						puntosDeTrayectos[pos.idlinea + "-" + pos.idtrayecto].push(pointLatlng);
+					}
+				  var trayectoPolyline = new google.maps.Polyline({
+					path: puntosDeTrayectos[pos.idlinea + "-" + pos.idtrayecto],
+					strokeColor: lineasColores[pos.idlinea],
+					strokeOpacity: 0.8,
+					strokeWeight: 5
+				  });
+				  trayectosPolylines[pos.idlinea + "-" + pos.idtrayecto] = trayectoPolyline;									
+					
+				}					
+					
+				trayectosPolylines[pos.idlinea + "-" + pos.idtrayecto].setMap(googlemap);
+			});
+			busesClickListeners[pos.matricula] = busClickListener;
+
+
+
+			if (lineasMarcadas['l' + pos.idlinea])
+				marker.setMap(googlemap);
+			else  {
+				marker.setMap(null);
+				//alert("se salta: " + pos.idlinea);
+			}
+
+			// descomentar para debugear la aplicacion y que no saque todos los buses 
+			//return (index!=30);
+			});
+
+			
+		//las paradas
+		var paradasTextos = {};
+		for (x in paradasMarkers) {
+			paradasTextos[x] = "<div style=\"width:500px;\"><div style=\"width:400px; border-bottom:3px solid;\" ><strong>" + paradasNombres[x] + " (" + x + ")</strong></div><br/>Próximas llegadas: <br/>";
+			paradasTextos[x] = paradasTextos[x] + "<table style=\"width:400px; margin-left: auto; margin-right: auto; background-color:white;\">"; 
+			}
+		var llegadasTextos = {};
+		jQuery.each(json.llegadas.llegada, function(index, lleg) {
+
+			// TODO ¿filtrar las llegadas de lineas a parada cuando la linea no existe?
+			//if (coloresLineasPrefijados["l"+lleg.idlinea]!="undefined" && coloresLineasPrefijados["l"+lleg.idlinea]!=null) {
+
+				colorTiempo = "black";
+				if (lleg.minutos <=2)
+					colorTiempo = "red";
+				var textoMin = lleg.minutos + " ''";
+				if (lleg.minutos==0)
+					textoMin = "1 ''";
+				//paradasTextos[lleg.idparada] = paradasTextos[lleg.idparada] + "&nbsp;&nbsp;&nbsp;" + lleg.idlinea + ". " + lineasNombres[lleg.idlinea]  + ": <strong style=\"color:" + colorTiempo + "\">" + textoMin + "</strong><br/>";
+
+				if (llegadasTextos[lleg.idparada]==null)
+					llegadasTextos[lleg.idparada] = {};			
+				//var lineaTexto = "&nbsp;&nbsp;&nbsp;<img src=\"images/bus" + lleg.idlinea + ".png\" align=\"top\"/> " + lineasNombres[lleg.idlinea]  + ": <strong style=\"color:" + colorTiempo + "\">" + textoMin + "</strong><br/>";
+				var lineaTexto = "<tr style=\"height:20px; background-color:white;\"><td style=\"height:20px; background-color:white; border-bottom: 2px dotted;\"><img src=\"images/bus" + lleg.idlinea + ".png\" align=\"top\"/> " + lineasNombres[lleg.idlinea]  + "</td><td style=\"height:20px; background-color:white; border-bottom: 2px dotted;\"> <strong style=\"color:" + colorTiempo + "\">" + textoMin + "</strong></td></tr>";
+
+				if (llegadasTextos[lleg.idparada][lleg.idlinea]==null)
+					llegadasTextos[lleg.idparada][lleg.idlinea] = new Array();
+				llegadaTiempo = new Object;
+				llegadaTiempo.tiempo = lleg.minutos;
+				llegadaTiempo.texto = lineaTexto;
+				llegadasTextos[lleg.idparada][lleg.idlinea].push(llegadaTiempo);
+			//}
+
+			}); 
+			
+		for (x in llegadasTextos)
+			llegadasTextos[x] = sortObj(llegadasTextos[x]);
+		for (x in llegadasTextos)
+			for (llegada in llegadasTextos[x]) {
+				llegadasTextos[x][llegada].sort(
+					function(lt1,lt2) {
+						if (lt1.tiempo<lt2.tiempo) return -1; else return 1;
+						});
+				for (indLlegadaTiempo in llegadasTextos[x][llegada])
+					paradasTextos[x] = paradasTextos[x] + llegadasTextos[x][llegada][indLlegadaTiempo].texto;
+			}
+		for (x in paradasMarkers) {
+
+			//paradasInfos[x].setContent(paradasTextos[x] + "</div>");
+			paradasInfos[x].setContent(paradasTextos[x] + "</table></div>");
+			}
+	}
+
+
+	// Funcion de inicializacion de los datos 
+	  function initialize() {
+
+		    var latlng = new google.maps.LatLng(43.53655,-5.662043);
+		    var myOptions = {
+		      zoom: 15,
+		      center: latlng,
+		      mapTypeControl: true,
+		      streetViewControl: true,
+		      scaleControl: true,
+		      mapTypeId: google.maps.MapTypeId.ROADMAP,
+				mapTypeControlOptions: {
+				   mapTypeIds: ['mapasinbus',google.maps.MapTypeId.SATELLITE,google.maps.MapTypeId.TERRAIN]
+				}	      
+		    };
+		    googlemap = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+
+			// estilo de mapa sin iconos de paradas de bus
+			var mapasinbusMapType = new google.maps.StyledMapType([{ featureType: "transit.station.bus", elementType: "all", stylers: [{ Visibility: "off" }] }], { baseMapType: google.maps.MapTypeId.SATELLITE, name: "Mapa", minZoom: 12, maxZoom: 17 });
+			googlemap.mapTypes.set('mapasinbus', mapasinbusMapType);
+			googlemap.setMapTypeId('mapasinbus');
+			//var hibridosinbusMapType = new google.maps.StyledMapType([{ featureType: "transit.station.bus", elementType: "all", stylers: [{ Visibility: "off" }] }], { baseMapType: google.maps.MapTypeId.HYBRID, name: "Híbrido" });
+			//googlemap.mapTypes.set('hibridosinbus', hibridosinbusMapType);
+			
+			
+			google.maps.event.addListener(googlemap, 'zoom_changed', function() {
+				//alert(googlemap.getZoom());
+			  if (googlemap.getZoom() > 17) {
+				  googlemap.setZoom(17);
+			  }; 				
+			  if (googlemap.getZoom() < 12) {
+				  googlemap.setZoom(12);
+			  }; 		
+			  				
+				if (googlemap.getZoom()>=17) {
+					for (x in paradasMarkers) {
+						//alert(googlemap.getZoom());
+						paradasMarkers[x].setIcon('images/paradag.png');
+						}
+				}
+				else {
+					for (x in paradasMarkers) {
+						paradasMarkers[x].setIcon('images/parada.png');
+						}
+				}
+			  });
+
+			shadowMarkerImage = new google.maps.MarkerImage('images/bus_sombra.png', null, null, new google.maps.Point(tamanioIconoBus/2, tamanioIconoBus/2));	    
+
+			$.ajax({ // paradas
+			  url: urlServidor + '/doc/transporte/busgijoninfo.json',
+			  async: false,
+			  success: function(data) {
+				  parseaInfo(data);
+				  var nombresParadas = new Array();
+				  for (x in paradasMarkers) {
+					  nombresParadas.push(paradasMarkers[x].getTitle());
+				  }
+				  $("#select_paradas").autocomplete(nombresParadas, { matchContains: true });
+				} 
+			}); // $.ajax  paradas
+
+
+			$.ajax({ // tr
+			  url: urlServidor + '/doc/transporte/busgijontr.json',
+			  async: true,
+			  success: function(data) {
+				  parseaTR(data);
+				} 
+			}); // $.ajax  tr
+			
+			$.PeriodicalUpdater(urlServidor + '/doc/transporte/busgijontr.json', {
+				method: 'get',          // method; get or post
+				  data: '',                   // array of values to be passed to the page - e.g. {name: "John", greeting: "hello"}
+				  minTimeout: 10000,       // starting value for the timeout in milliseconds
+				  maxTimeout: 15000,       // maximum length of time between requests
+				  multiplier: 2,          // if set to 2, timerInterval will double each time the response hasn't changed (up to maxTimeout)
+				  type: 'text',           // response type - text, xml, json, etc.  See $.ajax config options
+				maxCalls: 0,            // maximum number of calls. 0 = no limit.
+				autoStop: 0             // automatically stop requests after this many returns of the same data. 0 = disabled.
+			}, function(data) {
+			// Handle the new data (only called when there was a change)
+				var jsondata = jQuery.parseJSON(data);
+			   parseaTR(jsondata);
+			}); 
+
+
+			$("#select_paradas").result(function(event, data, formatted) {
+			 centrarparada(formatted);
+			});
+
+			$.ajax({ // trayectos
+			  url: urlServidor + '/doc/transporte/busgijontray.json',
+			  async: true,
+			  success: function(data) {
+				  parseaTrayectos(data);
+				} 
+			}); // $.ajax  trayectos
+			
+			
+		  }
+
+	
+	// Crea el marker adecuado para un bus a partir de su linea y su direccion.
+	//   Utiliza el sprite que incluye todos los iconos
+	function busMarkerOrientado(linea, direccion) {
+		//alert(direccion);
+		var posVerticalEnSprite = tamanioIconoBus * (linea - 1);
+		var posHorizontalEnSprite;
+		switch (direccion)
+		{
+		case "S": posHorizontalEnSprite=0; break;
+		case "SE": posHorizontalEnSprite=1; break;
+		case "E": posHorizontalEnSprite=2; break;
+		case "NE": posHorizontalEnSprite=3; break;
+		case "N": posHorizontalEnSprite=4; break;
+		case "NO": posHorizontalEnSprite=5; break;
+		case "O": posHorizontalEnSprite=6; break;
+		case "SO": posHorizontalEnSprite=7; break;
+		default: posHorizontalEnSprite=0;
+		}
+		
+		posHorizontalEnSprite = posHorizontalEnSprite * tamanioIconoBus;
+		//var markerImage = new google.maps.MarkerImage("images/buses_sprite.png", new google.maps.Size(25, 25), new google.maps.Point(posHorizontalEnSprite, posVerticalEnSprite), new google.maps.Point(12, 12));
+		var markerImage = new google.maps.MarkerImage("images/buses_sprite.png", new google.maps.Size(tamanioIconoBus, tamanioIconoBus), new google.maps.Point(posHorizontalEnSprite, posVerticalEnSprite), new google.maps.Point(tamanioIconoBus/2, tamanioIconoBus/2));
+		return markerImage;
+	}
+
+      function lineaclick(box) {
+		 alert(box.value);
+        if (box.checked) {
+          mostrarlinea(box.value);
+        } else {
+          borrarlinea(box.value);
+        }
+        // == rebuild the side bar
+        //makeSidebar();
+      }
+
+	  // Centra el mapa en una parada y abre su ventana de informacion
+      function centrarparada(parada) {
+		  var idparada = parada.split(" - ")[1];
+		  googlemap.setCenter(paradasMarkers[idparada].getPosition());
+			if (paradaInfoActual)
+				paradaInfoActual.close();
+			if (busInfoActual)
+				busInfoActual.close();		  
+		  paradasInfos[idparada].open(googlemap,paradasMarkers[idparada]);
+		  paradaInfoActual = paradasInfos[idparada];
+	  }
+
+
+	function sortObj(arr){
+		var sortedKeys = new Array();
+		var sortedObj = {};
+		for (var i in arr){
+			sortedKeys.push(i);
+		}
+		sortedKeys.sort( function(k1,k2) { if (parseInt(k1)<parseInt(k2)) return -1; else return 1;} );
+		//alert(JSON.stringify(sortedKeys));
+		for (var i in sortedKeys){
+			sortedObj[sortedKeys[i]] = arr[sortedKeys[i]];
+		}
+		return sortedObj;
+	}
+
+	// Calcula el angulo de la direccion del autobuses: es el angulo de la linea entre 
+	//    la posicion actual del bus y su siguiente parada
+	function anguloDireccion(busLatLong, paradaLatLong) {
+
+		busGooglePoint = new Object();
+		busGooglePoint.x = busLatLong.lng();
+		busGooglePoint.y = busLatLong.lat();
+		paradaGooglePoint = new Object();
+		paradaGooglePoint.x = paradaLatLong.lng();
+		paradaGooglePoint.y = paradaLatLong.lat();
+		busUtmPoint = getUtmPoint(busGooglePoint);
+		paradaUtmPoint = getUtmPoint(paradaGooglePoint);
+		var angulo = Math.atan2((paradaUtmPoint.y-busUtmPoint.y),(paradaUtmPoint.x-busUtmPoint.x));
+		angulo = angulo * 180 / Math.PI;
+		return angulo;
+	}
+
+	// A partir del angulo de la direccion del bus, devuelve el nombre del sector
+	//    en el que cae el angulo
+	function nombreDireccion(angulo) {
+		//alert(angulo);
+		if (angulo>=-180 && angulo<-157.5)
+			return "O";
+		else if (angulo>=-157.5 && angulo<-112.5)
+			return "SO";
+		else if (angulo>=-112.5 && angulo<-67.5)
+			return "S";
+		else if (angulo>=-67.5 && angulo<-22.5)
+			return "SE";
+		else if (angulo>=-22.5 && angulo<22.5)
+			return "E";
+		else if (angulo>=22.5 && angulo<67.5)
+			return "NE";
+		else if (angulo>=67.5 && angulo<112.5)
+			return "N";
+		else if (angulo>=112.5 && angulo<157.5)
+			return "NO";
+		else if (angulo>=157.5 && angulo<180)
+			return "O";
+		else 
+			return "S";
+	}
+
+	// Cambia el tamaño del mapa para que ocupe todo el espacio disponible
+	function resiz() {
+		document.getElementById('map_canvas').style.height = document.documentElement.offsetHeight - 8 - document.getElementById('container').offsetHeight - document.getElementById('controles').offsetHeight +'px';
+		return false;
+	}
+
+
+	// Cambia la visibilidad de los markers de los buses correspondientes a la linea
+	function actualizarLineasMarcadas(linea, valor) {
+		lineasMarcadas['l' + linea] = valor;
+
+		for (x in busesMarkers) { // se cambia el estado de los marker de la linea
+			if (busesMarkers[x].idLinea==linea) {
+				if (valor)
+					busesMarkers[x].setMap(googlemap);
+				else
+					busesMarkers[x].setMap(null);
+			}
+		}
+	}
+	
+	// Marca todos lo checkbox de la lineas: cambia a visibles todas
+	function actualizarLineasMarcadasMarcarTodas() {
+		for (x in lineasMarcadas) {
+			document.getElementById('checkbox_' + x.substring(1)).checked = true;
+			actualizarLineasMarcadas(x.substring(1), true);
+		}
+		for (x in trayectosPolylines) 
+			trayectosPolylines[x].setMap(null);		
+		document.getElementById('checkbox_todas').checked = false;
+	}
+
+	// Desmarca todos lo checkbox de la lineas: cambia a invisibles todas
+	function actualizarLineasMarcadasDesmarcarTodas() {
+		for (x in lineasMarcadas) {
+			document.getElementById('checkbox_' + x.substring(1)).checked = false;
+			actualizarLineasMarcadas(x.substring(1), false);
+		}
+		for (x in trayectosPolylines) 
+			trayectosPolylines[x].setMap(null);		
+		document.getElementById('checkbox_ninguna').checked = false;
+	}
+	
+    </script>
+
+
+
+	<title>RISP Gijón. Autobus en tiempo real</title>
+	
+
+
+
+<script type="text/javascript" charset="UTF-8" src="./RISP Gijón. Autobus en tiempo real_files/common.js"></script><script type="text/javascript" charset="UTF-8" src="./RISP Gijón. Autobus en tiempo real_files/map.js"></script><script type="text/javascript" charset="UTF-8" src="./RISP Gijón. Autobus en tiempo real_files/util.js"></script><script type="text/javascript" charset="UTF-8" src="./RISP Gijón. Autobus en tiempo real_files/marker.js"></script><script type="text/javascript" charset="UTF-8" src="./RISP Gijón. Autobus en tiempo real_files/infowindow.js"></script><style type="text/css">.gm-style {
+        font: 400 11px Roboto, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .gm-style img { max-width: none; }</style><script type="text/javascript" charset="UTF-8" src="./RISP Gijón. Autobus en tiempo real_files/onion.js"></script><script type="text/javascript" charset="UTF-8" src="./RISP Gijón. Autobus en tiempo real_files/controls.js"></script><script type="text/javascript" charset="UTF-8" src="./RISP Gijón. Autobus en tiempo real_files/stats.js"></script></head>
+
+<body id="altbody" onload="resiz();	initialize();" onresize="resiz();" style="font-family: Arial;border: 0 none; width: 98%; height: 98%">
+
+	<div id="body">
+        
+        	
+		<div style="padding:2px 0; height: 84%;">
+			
+	<div id="controles" style="width: 99.5%; float: left; border: 2px solid rgb(124, 54, 54); padding: 5px 0 5px 5px; margin-bottom: 4px;">
+	
+		<div style="float: left; width: 55%;">
+			<div style="font-size: 14px; font-weight: bold; margin-bottom: 5px">Líneas de autobús</div>
+			<div id="controlesListaLineas"><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #00A6D6;">L01 <input type="checkbox" id="checkbox_1" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #5C145E;">L02 <input type="checkbox" id="checkbox_2" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #144D29;">L04 <input type="checkbox" id="checkbox_4" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #DE1F82;">L06 <input type="checkbox" id="checkbox_6" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #2905A1;">L10 <input type="checkbox" id="checkbox_10" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #F7D917;">L12 <input type="checkbox" id="checkbox_12" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #8FD400;">L14 <input type="checkbox" id="checkbox_14" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #FF9B03;">L15 <input type="checkbox" id="checkbox_15" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #4F2926;">L16 <input type="checkbox" id="checkbox_16" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #F58FC7;">L18 <input type="checkbox" id="checkbox_18" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #910045;">L20 <input type="checkbox" id="checkbox_20" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #00B052;">L21 <input type="checkbox" id="checkbox_21" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #7D7805;">L24 <input type="checkbox" id="checkbox_24" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #9E4D0A;">L25 <input type="checkbox" id="checkbox_25" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #C4A6DE;">L26 <input type="checkbox" id="checkbox_26" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #F00A00;">L28 <input type="checkbox" id="checkbox_28" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #B80B00;">L30 <input type="checkbox" id="checkbox_30" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #828585;">L34 <input type="checkbox" id="checkbox_34" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div><div style="float: left;font-size: 11px; font-weight: bold; margin-left: 15px; padding-left: 4px; margin-bottom: 4px; border-left: 10px; border-style:solid; border-color: #FF8040;">L35 <input type="checkbox" id="checkbox_35" checked="checked" onchange="actualizarLineasMarcadas(this.id.substring(9),this.checked);"> &nbsp;</div></div>
+			<div style="float: left;font-size: 11px; font-weight: bold; margin-left: 30px; padding-left: 8px; margin-bottom: 4px;  ">Todas <input type="checkbox" id="checkbox_todas" onchange="actualizarLineasMarcadasMarcarTodas();"> &nbsp;</div>
+			<div style="float: left;font-size: 11px; font-weight: bold; margin-left: 30px; padding-left: 8px; margin-bottom: 4px;  ">Ninguna <input type="checkbox" id="checkbox_ninguna" onchange="actualizarLineasMarcadasDesmarcarTodas();"> &nbsp;</div>
+
+		</div>
+
+
+		
+		<div style="float: right; width: 45%;">
+			<div style="font-size: 14px; font-weight: bold; margin-bottom: 5px">Búsquedas</div>
+			<div><label for="select_paradas">Nombre parada: </label><input id="select_paradas" style="width: 25em;" onkeypress="{if (event.keyCode==13) centrarparada(this.value)}" autocomplete="off" class="ac_input"></div>
+		</div>
+	</div>
+	
+    <div id="map_canvas" style="width: 100%; height: 726px; position: relative; overflow: hidden;"></div>
+  
+		</div>
+
+<!-- 
+        <div id="footer-background">
+        </div>
+ -->
+ 
+	</div>   
+	
+
+
+</body></html>

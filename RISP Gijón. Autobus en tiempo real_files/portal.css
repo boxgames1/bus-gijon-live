@@ -1,0 +1,281 @@
+*{margin:0;padding:0;list-style:none;border:0;border-collapse:collapse}
+
+#toogleChart, #animateChart #maximizeChart {
+	display:none;
+}
+
+body#altbody{/*width:79.5em;*//*width:84em;*/width:80em;margin:0 auto;background:#fff;font:normal 75% arial, verdana, sans-serif;color:#686b6e}
+
+a{color:#275c86;text-decoration:underline}
+a.click{outline:none}
+a:hover,a:focus{color:#275c86 !important;text-decoration:underline}
+
+p{margin:10px 0 0 20px}
+
+h1{font-size:1em}
+h2{color:#d25600;font-size:1.6em}
+h3{margin:15px 0 5px;color:#3072a7;font-size:1.3em}
+h4{margin:15px 0 5px;color:#3072a7;font-size:1.2em}
+
+.success-message{color:green}
+.error-message{color:red}
+
+ul.favs{margin:0 5px 15px}
+ul.favs li{padding:6px 0 0 12px;background:transparent url(../images/vineta.gif) no-repeat 0 9px}
+ul.favs li a{display:block;padding:0 0 6px 12px;margin-left:-12px;background:transparent url(../images/separadorH.gif) repeat-x 0 100%;color:#686b6e;text-decoration:none}
+* html ul.favs li a{height:1px} /* solo IE6 e inferiores */
+
+fieldset{margin:10px 0 0;padding:5px 5px 0;border-top:1px solid #c5ced4; border-width: 1px 0 0}
+legend{margin:0 5px;padding:0 10px;color:#3072a7;font-size:1.1em;font-weight:bold}
+input, select, textarea{border:1px solid #7f9db9;font-size:1em;}
+.c3 select {
+	width: 94%
+}
+label{margin:8px 2px 2px;font-weight:bold;color:#275c86}
+
+/* ------------ ESTRUCTURA ------------- */
+.cuerpo1, .cuerpo2{width:100%;float:left !important;float:none;background:transparent url(../images/cuerpoSombraIzda.gif) repeat-y 0 0}
+.cuerpo2{background-image:url(../images/cuerpoSombraDcha.gif);background-position:100% 0}
+
+#wrapper-header, #wrapper-menu{width:97%;float:left;margin:25px 0 0 1.5%;display:inline;background:#e4c1c1 url(../images/cabeceraIzdaSup.jpg) no-repeat 0 0}
+#header{width:100%;float:left;padding:20px 0 3.7em;background:transparent url(../images/cabeceraDchaSup.gif) no-repeat 100% 0}
+#header h1{float:left;padding-left:20px}
+#header p{float:right;padding-right:40px}
+
+#wrapper-menu{margin-top:-2.9em;background:transparent url(../images/cabeceraDchaInf.gif) no-repeat 100% 100%}
+#wrapper-menu ul{float:left;padding:6px 6px 3px;background:transparent url(../images/sombraMenu.png) no-repeat 100% 0;font-size:1em}
+#wrapper-menu li{float:left;margin-left:3px;padding-left:3px;background:transparent url(../images/separador.gif) no-repeat 0 50%}
+#wrapper-menu li a{float:none !important;float:left;display:block;min-height:18px !important;height:auto !important;height:18px;padding:4px 4px 3px 4px;text-decoration:none}
+#wrapper-menu li:hover, #wrapper-menu li.active{background:#3072a7 url(../images/menuIzdaOn.gif) no-repeat 0 0}
+#wrapper-menu li:hover a, #wrapper-menu li.active a{background:transparent url(../images/menuDchaOn.gif) no-repeat 100% 0;color:#fff !important}
+#wrapper-menu li.active a{font-size:1em}
+#wrapper-menu li a:hover{text-decoration:none}
+* html #wrapper-menu li a:hover{background:#3072a7;color:#fff !important}
+
+#content{width:96%;min-height:250px !important;height:auto !important;height:250px;float:left;margin:5px 2%;display:inline;padding:8px 0;border:1px solid #93adc2;border-width:1px 0}
+
+#compas{margin:0 15px 5px;font-size:.9em;color:#3072a7}
+
+#situacion{width:100%;float:left;margin-bottom:10px;background:#e1e6e9 url(../images/titDcha.gif) no-repeat 100% 0}
+#situacion h2{float:left;padding:3px 20px;background:transparent url(../images/titIzda.gif) no-repeat 0 0}
+#toolBox li{float:left;padding-left:10px;font-size:.9em}
+#toolBox a{text-decoration:none}
+
+#footer{clear:left;background:transparent url(../images/cuerpoEsqIzda.gif) no-repeat 0 100%;font-size:.9em}
+#footer p{margin:0;background:transparent url(../images/cuerpoEsqDcha.gif) no-repeat 100% 100%}
+#footer p span{width:94%;display:block;margin:0 0 0 .5%;padding:15px 2.5% 20px;background:transparent url(../images/cuerpoSombraInf.gif) repeat-x 0 100%}
+#footer a{text-decoration:none}
+	*>/**/#footer p span{width:auto;margin:0 5px}
+	
+/* -------- ZONA RECURSO --------- */
+.moduloizda, .modulodcha{width:49.7%;float:left}
+.modulodcha{float:right}
+.cajacontent{width:100%;float:left;margin: 10px 0;background:transparent url(../images/cajaIzdaSup.gif) no-repeat 0 0;}
+.cajacontent .c1{background:transparent url(../images/cajaDchaSup.gif) no-repeat 100% 0}
+.cajacontent .c2{background:transparent url(../images/cajaIzdaInf.gif) no-repeat 0 100%}
+.cajacontent .c3{padding:15px 2%;background:transparent url(../images/cajaDchaInf.gif) no-repeat 100% 100%}
+	* html .cajacontent .c3{height:1px;padding-bottom:15px} /* solo IE6 e inferiores */
+	*+html .cajacontent .c3{padding-bottom:15px} /* solo IE7 */
+	.cajacontent p{margin:0}
+	
+	/*.moduloizda .cajacontent .c3, .modulodcha .cajacontent .c3{padding:4px}*/
+
+	/* pag. inicio */
+	.imgr{float:right;position:relative;margin:0 -16px 0 0}
+	.inicio .cajacontent{width:64%}
+	.inicio .cajacontent .c3{padding:15px 3.7%}
+	
+/* -------- ELEMENTOS  (tapinos combos) --------- */
+.tapinosCombos-seriesSwitchCheckbox, .tapinosCombos-seriesSwitchCheckbox{display:none}
+#seriesSwitchDiv {clear:left;padding:10px 15px 2px;font-weight:bold}
+#seriesSwitchDiv input{border:0;vertical-align:middle;margin:0 3px}
+#seriesSwitchDiv p{margin:5px 0 0 5px}
+.tapinosCombos-currentSeries{color:#d25600}
+
+.highcharts-container{position:relative;overflow:hidden;width:450px;height: 315px;font:normal 1em arial, verdana, sans-serif} /* estilo grafica svg */
+
+p select{width:100%}
+p.selectcorto{width:40%;float:left;padding-right:30px;margin:0 0 -10px}
+*>/**/p.selectcorto{margin-bottom:10px}
+p.selectlargo{margin-bottom:0}
+*>/**/p.selectlargo{margin-bottom:10px}
+p label{display:block}
+
+.tapinosCombos{padding-top:10px}
+.tapinosCombos span{min-width:20em;float:left;margin-right:10px}
+*>/**/.tapinosCombos span{padding-bottom:10px}
+
+/*.moduloizda fieldset, .modulodcha fieldset{border:0}*/
+/*.moduloizda legend, .modulodcha legend{padding:12px 3px 5px;font-size:1.2em}*/
+.moduloizda fieldset, .modulodcha fieldset{margin: auto}
+.moduloizda .tapinosCombos, .modulodcha .tapinosCombos{min-height:257px !important;height:auto !important;height:251px;padding:10px 15px}
+.moduloizda .tapinosCombos span, .modulodcha .tapinosCombos span{width:100%;display:block;float:none;padding-bottom:10px;margin:0}
+.moduloizda .tapinosCombos span label, .modulodcha .tapinosCombos span label{display:block}
+
+#chartRumo p{margin:15px;font-weight:bold}
+
+#asturiasMap .cajacontent .c3{min-height:304px !important;height:auto !important;height:304px;padding-top:15px;position:relative}
+#asturiasMap object{width:100%;height:233px;/*position:absolute;top:0;left:0;background:transparent url(../images/fondoMapa.gif) no-repeat 4px 4px*/}
+.tapinosMap-playButton{float:left;/*margin-left:30px;*/cursor:pointer;position:relative;top: -.3em;left: -18px;z-index:100}
+.tapinosMap-slider{margin:3px 40px 0 50px;position:relative;z-index:100}
+.tapinosMap-legend{width:430px;height:60px; margin:0;text-align:center;position:relative;z-index:100}
+
+.tapinosChart-bigNumber{font-size:8em;font-weight:bold;text-align:center;color:#d25600}
+
+#tableRumo .cajacontent{clear: both}
+#tableRumo .cajacontent .c3{/*width:76.1em;*/overflow:visible;overflow-x:auto;padding:4px 4px 20px}
+*>/**/#tableRumo .cajacontent .c3{padding-bottom:4px}
+
+#tableRumo.modulodcha .cajacontent{margin-top:10px}
+#tableRumo.modulodcha .cajacontent .c3{width:auto;min-height:322px !important;height:auto !important;height:322px;overflow:visible;padding:1px}
+
+#errors{clear:both;font-size:1.2em;font-weight:bold;color:#D24000}
+#errors img{vertical-align:middle;margin:0 10px 0 20px}
+
+.datasource{width:100%;float:left;background: #e8ebeb;text-align:left;margin-top: 15px}
+.datasource p{border-left:1px solid #e8ebeb;border-right:1px solid #e8ebeb;padding:5px 15px;margin:0;font-weight:bold;color:#275c86}
+.datasource p em{margin-right:4px;font-style:normal;font-weight:normal}
+	
+span.rtop, span.rbottom{display:block;background:#fff}
+span.rtop span, span.rbottom span{display:block;height:1px; overflow:hidden;background:#e8ebeb}
+span.r1{margin: 0 5px;}
+span.rtop span.r1{border:1px solid #e8ebeb;border-bottom:0}
+span.rbottom span.r1{border:1px solid #e8ebeb;border-top:0}
+span.r2{margin: 0 3px;border-right:1px solid #e8ebeb;border-left:1px solid #e8ebeb}
+span.r3{margin: 0 2px;border-right:1px solid #e8ebeb;border-left:1px solid #e8ebeb}
+span.rtop span.r4{border-right:1px solid #e8ebeb;border-left:1px solid #e8ebeb}
+span.rbottom span.r4{border-right:1px solid #e8ebeb;border-left:1px solid #e8ebeb}
+span.rtop span.r4, span.rbottom span.r4{margin: 0 1px;height:2px}
+
+/* tablas */
+table.display{width:100%;/*border-left:1px solid #93adc2*/}
+table.display th, table.display td{width:auto !important;padding:5px 5px 3px;border-right:1px solid #93adc2;font-size:.9em;vertical-align:top;text-align:left}
+table.display thead th {min-width:9em;padding-right:20px;padding-bottom:8px;color:#275c86;cursor:hand;font-size:1.1em}
+
+table.display tr {
+	color: #444
+}
+table.display tr.odd td{background:#e8ebeb}
+table.display tr.even td{background:#fff}
+
+table.display td.center{text-align:center}
+
+.dataTables_info{clear:left;padding:10px 2.5%;font-size:.9em;color:#d25600}
+
+/* --- acciones --- */
+.paginate_disabled_previous, .paginate_enabled_previous, .paginate_disabled_next, .paginate_enabled_next{height:19px;width:19px;float:left;margin-left:3px}
+.paginate_disabled_previous{background-image:url('../images/back_disabled.jpg')}
+.paginate_enabled_previous{background-image: url('../images/back_enabled.jpg')}
+.paginate_disabled_next{background-image: url('../images/forward_disabled.jpg')}
+.paginate_enabled_next{background-image: url('../images/forward_enabled.jpg')}
+
+.sorting, .sorting_asc, .sorting_desc, .sorting_asc_disabled, .sorting_desc_disabled{background: no-repeat 100% 5px}
+.sorting{background-image:url(../images/sort_both.png)}
+.sorting_asc{background-image:url(../images/sort_asc.png)}
+.sorting_desc{background-image:url(../images/sort_desc.png)}
+.sorting_asc_disabled{background-image:url(../images/sort_asc_disabled.png)}
+.sorting_desc_disabled{background-image:url(../images/sort_desc_disabled.png)}
+
+
+
+
+.highcharts-container {
+	margin:auto;
+}
+h3#tableHeading {
+	padding-top: 20px;
+}
+#chartRumo p.pieGrafico,
+#asturiasMap p.pieGrafico {
+	padding: 10px 15px 2px;
+	font-weight: bold;
+}
+
+.ajusteRumo {
+	position: absolute;
+}
+.cajacontent {
+	position: relative;
+}
+#chartRumo .maximizeRumo,
+ .maximizeRumo {
+    position: static;
+    margin: 2px;
+    padding: 0;
+    text-align: right
+}
+
+#tableRumo {
+	clear: both;
+}
+
+
+#content {
+    border: none
+}
+#situacion,
+#situacion h2 {
+    float: none;
+    margin-bottom: 4px
+}
+#toolBox,
+#toolBox ul,
+#toolBox li {
+    margin: 0;
+    padding: 0;
+    float: none
+}
+#toolBox ul {
+    text-align: right;
+}
+#toolBox a {
+}
+#toolBox li {
+    display: inline;
+    padding: 5px 5px 5px 14px
+}
+#toolBox li.printer {
+	background: transparent url(../images/printer.png) left center no-repeat;
+}
+.link {
+	background: transparent url(../images/link.png) left center no-repeat;
+}
+.csv {
+	background: transparent url(../images/csv.png) left center no-repeat;
+}
+.json {
+	background: transparent url(../images/json.png) left center no-repeat;
+}
+.export {
+	background: transparent url(../images/export.png) left center no-repeat;
+}
+.bigMap {
+	position: relative
+}
+
+.tapinosMap-tooltipRumo {
+	position: absolute;
+}
+.tapinosMap-tooltipRumo span{
+	background-color: #FFF;
+    padding: 1px 3px 1px 5px;
+}
+
+.problems {
+	margin-left: 48px;
+}
+
+.problems li {
+	list-style: url(../images/alert.png);
+	margin-bottom: 6px;
+}
+#relatedIndicadores ul {
+    margin-left: 25px;
+}
+#relatedIndicadores li {
+    margin: 5px 0;
+    list-style: disc
+}
+#relatedIndicadores p {
+    margin: 5px;
+}
